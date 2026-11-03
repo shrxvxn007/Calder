@@ -1,0 +1,26 @@
+{
+  "checked_on": "2026-11-03",
+  "environment": "Codex execution environment; sandbox DNS failed, approved external requests returned HTTP 400",
+  "documentation_url": "https://scperteval.readthedocs.io/en/latest/user-guide/datasets.html",
+  "datasets": [
+    {
+      "dataset": "replogle22k562",
+      "url": "https://storage.googleapis.com/scperteval/processed/replogle22k562_processed_complete.h5ad",
+      "head_result": "HTTP 400 Bad Request",
+      "public_gcs_metadata_result": "HTTP 400 Bad Request",
+      "verified_available": false,
+      "downloaded": false,
+      "benchmark_performed": false
+    },
+    {
+      "dataset": "replogle22rpe1",
+      "url": "https://storage.googleapis.com/scperteval/processed/replogle22rpe1_processed_complete.h5ad",
+      "head_result": "HTTP 400 Bad Request",
+      "public_gcs_metadata_result": "HTTP 400 Bad Request",
+      "verified_available": false,
+      "downloaded": false,
+      "benchmark_performed": false
+    }
+  ],
+  "interpretation": "These failures demonstrate an execution-environment access limitation, not that the public datasets do not exist. Supply verified local H5AD paths or retry download in another network environment. Synthetic data are never silently substituted."
+}

@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Please cite the software version and experiment config hash when using CALDER."
+title: "CALDER: Calibrated Active Learning for Diverse and Efficient Biological Research"
+version: 0.1.0
+date-released: 2026-11-03
+type: software
+license: MIT
+authors:
+  - family-names: "CALDER contributors"
+abstract: "Research software for auditable, budgeted active hit discovery using finite-pool retrospective experiments."

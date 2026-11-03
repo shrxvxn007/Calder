@@ -1,0 +1,76 @@
+schema_version: 1
+experiment_name: replogle22k562
+output_dir: results
+dataset:
+  name: replogle22k562
+  prepared_path: data/processed/replogle22k562
+  normalization: log_normalized
+  perturbation_key: perturbation
+  control_label: control
+  min_cells: 12
+  min_genes_per_cell: 200
+  min_cells_per_gene: 3
+  n_hvg: 1024
+  bootstrap_replicates: 50
+  feature_mode: control
+synthetic:
+  n_candidates: 250
+  n_features: 24
+  n_groups: 5
+  scenarios:
+  - A
+  - B
+  - C
+  - D
+  data_seed: 317
+  noise_scale: 0.2
+  distribution_shift: 0.8
+  group_corruption: 0.25
+  group_overlap: 0.1
+  outlier_fraction: 0.02
+  heterogeneous_costs: false
+model:
+  name: random_features
+  n_features: 128
+  prior_precision: 1.0
+  noise_floor: 0.04
+  length_scale: 2.0
+acquisition:
+  diversity_weight: 1.0
+  uncertainty_weight: 0.1
+  similarity_weight: 0.1
+  ucb_beta: 2.0
+protocol:
+  seeds:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  pilot_fraction: 0.05
+  calibration_fraction: 0.35
+  calibration_min_samples: 12
+  batch_size: 10
+  budget_fractions:
+  - 0.05
+  - 0.1
+  - 0.2
+  threshold_quantiles:
+  - 0.7
+  - 0.8
+  - 0.9
+  policies:
+  - random
+  - greedy_mean
+  - uncertainty
+  - ucb
+  - thompson
+  - probability_of_hit
+  - poh_diversity
+  - calder
+  include_oracle: true
