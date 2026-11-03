@@ -41,11 +41,14 @@
         "checksum": "md5:d8cba17576d1a8afc0f7d71b79cad0f7",
         "head_status": 200,
         "download_status": "complete_verified",
-        "benchmark_performed": false,
+        "benchmark_performed": true,
         "downloaded": true,
         "source_md5_verified": true,
         "sha256": "412fd0df8c4ccea9f4db91cd88033c49200838b29d40945e48574be588b48789",
-        "local_path": "data/raw/ReplogleWeissman2022_K562_essential.h5ad"
+        "local_path": "data/raw/ReplogleWeissman2022_K562_essential.h5ad",
+        "benchmark_run": "results/reference_k562",
+        "benchmark_config_hash": "f22d66d39fdb00d01c7278aefdc90bc7bd0c5d229826df854e0b7227b475e1b1",
+        "benchmark_git_commit": "7e95d257bd7aaec8247dae6ff8f8d524fdb2c024"
       },
       {
         "dataset": "replogle22rpe1",
@@ -55,11 +58,14 @@
         "checksum": "md5:cc7f1ec50aeb3a3e1b4a6cfa713d80fa",
         "head_status": 200,
         "download_status": "complete_verified",
-        "benchmark_performed": false,
+        "benchmark_performed": true,
         "downloaded": true,
         "source_md5_verified": true,
         "sha256": "12d6a0cf9378c4f09411e27f0ce07b59f1d97731bd576d6fadf112f6f088d1a4",
-        "local_path": "data/raw/ReplogleWeissman2022_rpe1.h5ad"
+        "local_path": "data/raw/ReplogleWeissman2022_rpe1.h5ad",
+        "benchmark_run": "results/reference_rpe1",
+        "benchmark_config_hash": "00f47d76e3508bbcd8248379fcb1b19b0128e1b981597bcaf959e7708ecc44ee",
+        "benchmark_git_commit": "7e95d257bd7aaec8247dae6ff8f8d524fdb2c024"
       }
     ],
     "panel_identity": "K562 essential and RPE1 essential panels; the much larger K562 genome-wide file was excluded explicitly",

@@ -2,7 +2,7 @@
 
 ## Abstract
 
-We implemented and audited a leakage-isolated, CPU-based experimental-selection system with Bayesian random-feature regression, pilot-reserved probability calibration and fixed-group batch diversity. A controlled benchmark comprised 1,080 trajectories over four synthetic landscapes, ten paired seeds, three pilot-derived thresholds, eight acquisition policies and an evaluation-only full-information reference; 840 further trajectories tested six component/representation ablations. At the 80th-percentile pilot threshold and 50 additional experiments, CALDER discovered 8.0, 3.8, 3.1 and 1.3 fewer measured hits than ordinary Probability-of-Hit in scenarios A–D respectively. Paired 95% bootstrap intervals excluded zero for A–C, while D was inconclusive. Group coverage improved by 0.3 groups in B and showed no corresponding advantage in A, C or D. On CALDER's acquired examples, the pilot-fitted mapping worsened both measured-label and latent-label mean Brier score in every scenario at this threshold. These negative results support separating hit count, group coverage and calibration rather than assuming a joint improvement. The estimates describe algorithmic variation conditional on four fixed synthetic pools; biological K562/RPE1 evaluation is pending data preparation. No real laboratory experiments were performed by CALDER.
+We implemented a leakage-isolated, CPU-based system for budgeted perturbation selection using Bayesian random-feature regression, pilot-reserved probability calibration and batch diversity. Controlled evaluation comprised 1,080 primary synthetic trajectories and 840 component-ablation trajectories. We also completed 270 retrospective trajectories in each of the Replogle K562 essential and RPE1 panels, using the checksum-verified scPerturb release and a frozen method. At the 80th-percentile pilot threshold, CALDER found fewer synthetic hits than Probability-of-Hit in all four landscapes. In biological replay, CALDER minus Probability-of-Hit was −14.3 confirmed hits [95% paired bootstrap CI −18.0, −10.6] in K562 and −20.1 [−28.0, −10.3] in RPE1; artificial control-feature cluster coverage changed by +0.3 [0.1, 0.6] and +0.3 [0.0, 0.6] respectively. These clusters are diversity proxies, not validated biological pathways. Calibration improved acquired-label Brier score in K562 despite poorer hit discovery, illustrating that probability reliability and decision efficiency can diverge. RPE1 calibration changed little and predictive intervals undercovered in both contexts. Results describe ten paired algorithmic seeds per fixed context, not biological replications or laboratory experiments performed by CALDER. The evidence supports retaining negative outcomes and reporting hit discovery, proxy-group coverage and calibration separately; it does not demonstrate an overall CALDER advantage.
 
 ## 1. Introduction
 
@@ -81,6 +81,26 @@ The primary configuration hash is `a76b99c6129af0d9adc3ed4cb1beaf456ba1beb0fa75f
 
 Primary acquisition/evaluation runtime was 29.67 seconds; the ablation run was 27.14 seconds on the recorded CPU environment, excluding subsequent figure/report generation. Process lifetime resident high-water marks were 492.3 MB and 443.9 MB respectively; these include imports and are not incremental per-trajectory allocations.
 
+### Completed biological preparation and frozen context validation
+
+The exact source is scPerturb Zenodo release 1.4, [record 13350497](https://zenodo.org/records/13350497), not the scPertEval processed files. The K562 **essential** file and RPE1 file were downloaded with verified publisher MD5 checksums. Backed/chunked count-scale processing applies library-size normalization to 10,000 and log1p once. Newly fitted expression filtering, response-gene selection, statistical features, SVD and clustering use untreated controls only.
+
+| Context | Source cells / genes | Retained controls | Retained intervention cells | Excluded cells | Candidate genes | Low-cell candidates (12–29 cells) |
+| --- | --- | --- | --- | --- | --- | --- |
+| K562 essential | 310,385 / 8,563 | 10,691 | 274,151 | 25,543 | 1,855 | 66 |
+| RPE1 | 247,914 / 8,749 | 11,485 | 201,802 | 34,627 | 2,045 | 290 |
+
+Each context uses 1,024 response genes chosen by control-only variance after control detection filtering, 16 gene-embedding components from a bounded 2,048-control-cell subset, and five context-specific artificial control-feature clusters. No STRING network was supplied, so coverage findings concern these proxies rather than independently validated biological modules. Single-gene candidates require at least 12 retained cells and an identifier represented in the released gene universe. Fifty seeded bootstrap replicates resample perturbation and control cells; 12–29-cell candidates remain with explicit uncertainty warnings.
+
+The biological pilot is 5%: K562 has 93 pilot candidates (61 training, 32 calibration) and 371 additional experiments at the final 20% checkpoint; RPE1 has 103 pilot candidates (67 training, 36 calibration) and 409 additional experiments. Final precision therefore divides by 464 and 512 total experiments respectively, including pilots. Thresholds remain the predeclared 70th/80th/90th pilot-training percentiles. Each context has ten seeds, eight acquisition rules and an evaluation-only reference, for 270 trajectories.
+
+The shared method was frozen before biological selection in [frozen_protocol.json](frozen_protocol.json), with verified method hash `d0556a6e2cc15b77a771a7fcc3ee111bf996aaf9477b6e5dc54511992ac3bfe7`. Model, acquisition and complete protocol sections match that frozen object in both context configurations. Both runs record Git `7e95d257bd7aaec8247dae6ff8f8d524fdb2c024`, `git_tracked_dirty=false`, and identical source-tree hash `a4055224cc2b528efbbedf5e60840df7ee89f4cf75338d07bbed4c9a83100abf`. Their `git_dirty=true` flag includes untracked generated outputs. Original experimental provenance is preserved separately from later report-generation provenance.
+
+- K562: config `f22d66d39fdb00d01c7278aefdc90bc7bd0c5d229826df854e0b7227b475e1b1`; endpoint CSV SHA-256 `12d0a6ed01eeb972ecfd9f304640e2ca135ec0f81dd4bb41502af21efe496254`.
+- RPE1: config `00f47d76e3508bbcd8248379fcb1b19b0128e1b981597bcaf959e7708ecc44ee`; endpoint CSV SHA-256 `053f4f785ad3ce1020971980686a8c96223526e2f912009f4323fe757d31ebc6`.
+
+Detailed QC and processing provenance are in [K562 preparation](../data/manifests/replogle22k562_preparation.json) and [RPE1 preparation](../data/manifests/replogle22rpe1_preparation.json). Both runs' configuration, endpoint, paired-difference and calibration table hashes were checked against their manifests. This is independent sequential re-evaluation in RPE1 using newly revealed observations, **not** direct transfer of a fitted K562 model. No RPE1 outcome-label tuning was performed.
+
 ## 6. Results
 
 ### Hit discovery and predefined-group coverage
@@ -134,11 +154,46 @@ These are unweighted means across round snapshots; pools shrink as candidates ar
 
 The derived [audit table](synthetic_probability_plateau_audit.csv) and [input-provenance record](synthetic_probability_plateau_audit.json) are reproducible with `python scripts/audit_probability_plateaus.py --run-dir results/reference_synthetic --output reports/synthetic_probability_plateau_audit.csv`. The script checks regenerated feature hashes against the source run, audits saved decisions, and leaves the benchmark outputs unchanged.
 
-### Figures and current biological-data status
+### Retrospective K562 and RPE1 validation
 
-All figures derive from saved outputs. Figure 1A (q=0.8), Figure 3C (q=0.8) and Figure 5D (q=0.8) were visually inspected: labels, legends, axes and negative effects were legible. [Discovery curve](../results/reference_synthetic/figures/figure_1_dataset-synthetic__scenario-A__threshold_quantile-0.8.png), [reliability diagram](../results/reference_synthetic/figures/figure_3_dataset-synthetic__scenario-C__threshold_quantile-0.8.png), [ablation plot](../results/reference_ablations/figures/figure_5_dataset-synthetic__scenario-D__threshold_quantile-0.8.png). The reliability diagram pools acquired events descriptively; its individual bins are not independent validation samples. Figure 6 is pending actual K562/RPE1 benchmark outputs.
+The following conditional means use the central predeclared q=0.8 threshold at the final 20% additional-budget checkpoint. Precision and recall include the pilot; recall is relative to the context's complete offline **measured-hit** pool at each paired pilot-derived threshold.
 
-The scPertEval GCS endpoints returned HTTP 400 in this execution environment. A verified alternative release is scPerturb 1.4, [Zenodo record 13350497](https://zenodo.org/records/13350497), DOI [10.5281/zenodo.13350497](https://doi.org/10.5281/zenodo.13350497): `ReplogleWeissman2022_K562_essential.h5ad` (1,546,729,675 bytes) and `ReplogleWeissman2022_rpe1.h5ad` (1,236,886,900 bytes). Both downloads are complete and checksum-verified; preparation/evaluation is in progress, and no biological result is asserted here. This harmonized source requires its own schema and expression-scale inspection and must not inherit scPertEval's processed-log-normalization assumptions silently. Source checks, expected checksums and current download state are in [source_verification.json](../data/manifests/source_verification.json). Synthetic H5AD unit-test fixtures do not count as biological validation.
+| Context | Policy | Confirmed hits | Precision | Recall | Artificial clusters with hits | Total experiments |
+| --- | --- | --- | --- | --- | --- | --- |
+| K562 | CALDER | 95.9 | 20.67% | 25.52% | 4.5 | 464 |
+| K562 | PoH | 110.2 | 23.75% | 29.42% | 4.2 | 464 |
+| RPE1 | CALDER | 126.5 | 24.71% | 27.65% | 5.0 | 512 |
+| RPE1 | PoH | 146.6 | 28.63% | 32.55% | 4.7 | 512 |
+
+Paired differences are CALDER minus Probability-of-Hit; precision/recall differences are percentage points. The ten seeds are paired within each context, not across cell types.
+
+| Context | Δ hits [95% CI] | Δ clusters [95% CI] | Δ precision, pp [95% CI] | Δ recall, pp [95% CI] |
+| --- | --- | --- | --- | --- |
+| K562 | -14.30 [-18.00, -10.60] | +0.30 [+0.10, +0.60] | -3.08 [-3.88, -2.28] | -3.89 [-4.95, -2.84] |
+| RPE1 | -20.10 [-28.00, -10.30] | +0.30 [+0.00, +0.60] | -3.93 [-5.47, -2.01] | -4.90 [-7.15, -2.51] |
+
+CALDER discovered fewer hits in both contexts, with hit-count intervals excluding zero, while K562 gained a small amount of artificial-cluster coverage. RPE1's corresponding coverage interval included zero. There is no demonstrated improvement in validated biological-group coverage because no independent network/pathway labels were used in these completed runs.
+
+Absolute cross-context hit counts should not be read as a cell-type hit-rate comparison: RPE1 measured 512 total candidates and K562 464, their response scores are standardized within different datasets, their pilot-derived thresholds differ, and their feature clusters have different identities. Precision is a clearer budget-normalized descriptive comparison, but still concerns context-specific hit definitions. The [context comparison](../results/reference_contexts/summary.md) and [Figure 6](../results/reference_contexts/figures/figure_6_q-0.8_random_features.png) display actual saved counts and precision under a frozen procedure, with candidate and experiment counts labelled; they do not establish that one cell type is biologically easier to perturb.
+
+### Biological calibration and model failure
+
+These are means of seed-level diagnostics on CALDER's adaptively acquired measured outcomes, with both probability versions scored on the same acquired examples.
+
+| Context | Raw Brier | Mapped Brier | Raw ECE | Mapped ECE | Model-assumed 95% interval coverage |
+| --- | --- | --- | --- | --- | --- |
+| K562 | 0.268 | 0.214 | 0.265 | 0.162 | 0.707 |
+| RPE1 | 0.296 | 0.295 | 0.282 | 0.258 | 0.600 |
+
+K562 shows a clear descriptive improvement in probability metrics despite fewer discovered hits, so improving prediction reliability did not guarantee an improved selection rule. RPE1's mean Brier change is very small (0.29584 to 0.29457), with a modest ECE reduction. Both contexts have substantial predictive-interval undercoverage even after adding sampling variance and the configured model-discrepancy floor: 0.707 and 0.600 against nominal 0.95. This suggests inadequacy of the assumed predictive distribution in these selected examples; it is not evidence of a guaranteed calibrated latent-effect model. True latent biological effects are unavailable in these real-data replays.
+
+Source-dependent noise, guide efficacy, shared controls and context shift remain plausible contributors. RPE1 contains more low-cell candidates (290 versus 66) and a lower median retained cell count per candidate (70 versus 121), but these observations do not isolate a causal explanation. The [K562 uncertainty–error plot](../results/reference_k562/figures/figure_7_dataset-replogle22k562__scenario-replogle22k562__threshold_quantile-0.8.png) and Figure 6 were visually checked for correct measured-target labels and legibility; dense scatter overlap should not be interpreted as a calibrated uncertainty–error relationship.
+
+### Figure and source provenance
+
+All figures derive from saved outputs. Figure 1A (q=0.8), Figure 3C (q=0.8) and Figure 5D (q=0.8) were visually inspected: labels, legends, axes and negative effects were legible. [Discovery curve](../results/reference_synthetic/figures/figure_1_dataset-synthetic__scenario-A__threshold_quantile-0.8.png), [reliability diagram](../results/reference_synthetic/figures/figure_3_dataset-synthetic__scenario-C__threshold_quantile-0.8.png), [ablation plot](../results/reference_ablations/figures/figure_5_dataset-synthetic__scenario-D__threshold_quantile-0.8.png). The reliability diagram pools acquired events descriptively; its individual bins are not independent validation samples. Figure 6 is now available from the completed K562/RPE1 saved outputs, with unequal experiment counts explicitly documented above.
+
+The scPertEval GCS endpoints returned HTTP 400 in this execution environment. The verified alternative scPerturb release supplied `ReplogleWeissman2022_K562_essential.h5ad` (1,546,729,675 bytes) and `ReplogleWeissman2022_rpe1.h5ad` (1,236,886,900 bytes). Both downloads were checksum-verified and independently schema-validated as counts before normalization. They are not silently relabelled scPertEval processed files. Source URLs, checksums and access checks remain in [source_verification.json](../data/manifests/source_verification.json). Synthetic H5AD unit-test fixtures are distinct from the completed public-data biological replays.
 
 ## 7. Ablation studies
 
@@ -157,7 +212,7 @@ Removing the similarity penalty improved A by 3.7 hits [0.90, 6.30], with a grou
 
 In separated-mode scenario B, removing diversity changed hit count by −0.3 [−0.90, 0.20] and group coverage by −0.4 [−0.80, 0.00]. Removing uncertainty changed hits by +0.2 [−0.80, 1.10] and groups by −0.3 [−0.80, 0.00]. These borderline/descriptive intervals do not establish a reliable component benefit, but they identify coverage as the relevant outcome rather than hit count. Under the fixed settings, randomized group labels also changed B's group coverage by −0.3 [−0.70, 0.00]. Uninformative representations strongly harmed the smooth A landscape (−14.9 hits), while effects in nonlinear/noisy scenarios were smaller and uncertain.
 
-These are component tests at one fixed setting, not proof that an exhaustive search could not find a better setting. No hyperparameter was selected retrospectively to make CALDER win. Network-feature and deep-ensemble empirical comparisons are not claimed by these synthetic component runs. Predeclared pilot/noise/threshold/batch/model sweeps are separate experiments; only completed saved runs should be analyzed. Full seed-level data and all group-coverage intervals are preserved in [ablations.csv](../results/reference_ablations/ablations.csv) and [paired_differences.csv](../results/reference_ablations/paired_differences.csv).
+These are component tests at one fixed setting, not proof that an exhaustive search could not find a better setting. No hyperparameter was selected retrospectively to make CALDER win. The main component run does not include network-feature comparisons. Separate [exploratory model comparisons](../results/reference_models/summary.md) evaluated Bayesian ridge, the 128-feature Bayesian RFF model and a five-member MLP ensemble across four scenarios, three development seeds and random/PoH/CALDER rules (108 trajectories). PoH had more mean confirmed hits than CALDER in all twelve scenario/model combinations; the ensemble retained 153 fixed-budget convergence warnings, so these small checks do not establish model-family superiority or optimizer convergence. Separate [one-factor sensitivity runs](../results/reference_sensitivity/summary.md) contain 216 trajectories covering pilot fractions 0.1/0.2/0.3, batch sizes 5/10/20 and noise scales 0.05/0.2/0.5. Small positive CALDER differences occurred in some settings, for example C at pilot fraction 0.1 (+0.67 hits, exploratory CI [−2, 3]) and D at noise scale 0.5 (+1.0 [−2, 4]); these uncertain three-seed effects were retained. Pilot-size comparisons change both initial cost and the pilot-derived threshold, so they cannot be interpreted as isolated acquisition-rule effects across settings. No model or biological parameter was chosen from these outcomes. Full seed-level data and all group-coverage intervals are preserved in [ablations.csv](../results/reference_ablations/ablations.csv) and [paired_differences.csv](../results/reference_ablations/paired_differences.csv).
 
 ## 8. Limitations
 
@@ -165,17 +220,19 @@ Noisy pseudobulk response magnitudes depend on filtering, feature choice and cel
 
 Network annotations can be incomplete, inaccurate or context-insensitive. Feature clusters do not establish biological mechanisms. Conditional independence in coverage utility is approximate. RPE1 reruns evaluate a new context, whereas direct K562-to-RPE1 predictive transfer is a different optional experiment. Synthetic success cannot establish biological performance. A high response score does not establish therapeutic usefulness, and intervention effects do not automatically establish direct causal regulatory edges.
 
+The harmonized scPerturb files already contain an upstream curated gene universe (8,563/8,749 variables). CALDER controls all newly fitted transformations, but cannot reconstruct every upstream expression-filtering choice from these files alone. Leakage prevention therefore applies to the delivered pipeline conditional on this released universe; it does not certify that the original release was prepared without access to intervention data. Original guide-level efficacy, cell-state and experimental-batch confounding are not fully corrected by the current pseudobulk score. The five artificial feature clusters are not independent biological-group annotations, limiting the biological interpretation of the central coverage question. Context-specific thresholds and different candidate pools also limit direct comparisons of absolute counts.
+
 ## 9. Discussion
 
 The reference synthetic runs give a negative answer to the proposed joint-improvement hypothesis. Ordinary Probability-of-Hit discovered more measured and latent hits at the displayed central threshold. CALDER improved group coverage only in the separated-mode scenario B, at a measurable hit-count cost. In nearly saturated groups, a diversity term has little primary-outcome headroom. These outcomes reinforce the need to retain hit count and coverage as distinct endpoints.
 
 Probability calibration also failed under this protocol: the pilot-reserved mapping worsened the displayed Brier/ECE diagnostics, and removing it improved C's discovery count. A fixed small reserve, finite-sample isotonic estimates and changing surrogate scores are plausible contributors. A monotone map can preserve single-candidate rankings while changing the scale and saturation of a batch diversity objective; better or worse probability metrics therefore need not translate mechanically into corresponding acquisition gains. These mechanisms require follow-up experiments rather than retrospective storytelling.
 
-The findings concern four particular seeded synthetic pools, not population-wide claims about genetic perturbations. Ten seeds share each underlying pool. Biological evaluation must be performed with frozen methods, explicit source provenance and control-only representations before extending the interpretation to K562 or RPE1.
+The completed biological replay strengthens the negative hit-discovery finding under the frozen reference method: PoH found more hits in both K562 essential and RPE1. K562 calibration improved despite poorer selection, while RPE1 showed little Brier improvement and marked interval undercoverage. Coverage findings concern artificial control-feature clusters and cannot establish wider pathway discovery. These are fixed retrospective pools with ten algorithmic seeds, not independent biological replications or prospective experimental validation.
 
 ## 10. Conclusion
 
-CALDER provides a reproducible, leakage-tested framework for budgeted perturbation-selection experiments. In the completed reference synthetic runs, its default calibrated, diversified batch rule did not outperform ordinary Probability-of-Hit in hit discovery. A limited coverage gain came with fewer hits in one separated-mode setting, and the chosen calibration protocol worsened prequential probability diagnostics. These negative results are retained as the current empirical conclusion. K562/RPE1 biological findings remain pending preparation and evaluation of the verified public-data release.
+CALDER provides a reproducible, leakage-tested framework with controlled synthetic experiments, component ablations, exploratory model/sensitivity checks and retrospective public-data K562/RPE1 validation under a frozen method. The default calibrated, diversified rule found fewer hits than ordinary Probability-of-Hit in the main synthetic landscapes and both biological contexts at the central threshold. Small proxy-group coverage gains came with reduced hit discovery, and better K562 probability metrics did not improve acquisition efficiency. These negative and mixed outcomes are the demonstrated findings. No real laboratory experiments were performed by CALDER; no therapeutic benefit, causal regulatory mechanism or universal policy advantage is established.
 
 ## 11. References
 

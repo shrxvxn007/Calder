@@ -8,6 +8,21 @@ The repository implements synthetic experiments with known ground truth, a Bayes
 
 No laboratory experiments are performed. Biological experiments, when supplied, are retrospective replays of published measurements. Synthetic results are never presented as biological validation.
 
+## Completed reference experiments
+
+The delivered repository contains **2,784 saved replay trajectories**, including 540 biological trajectories over ten seeds and three thresholds. The exact essential-panel raw-count sources were checksum verified; after control-only preparation, the pools contain **1,855 K562** and **2,045 RPE1** perturbations. Both biological runs used the identical frozen method and execution source revision `7e95d25`.
+
+At the central 80th-percentile pilot threshold, the measured result is a **hit-discovery loss for CALDER**:
+
+| Context | Mean hits, CALDER / PoH | Paired hit difference [95% bootstrap CI] | Fixed-cluster coverage difference |
+| --- | --- | --- | --- |
+| K562 | 95.9 / 110.2 | −14.3 [−18.0, −10.6] | +0.3 |
+| RPE1 | 126.5 / 146.6 | −20.1 [−28.0, −10.3] | +0.3 |
+
+The runs measured 464 and 512 candidates respectively, including their pilots; absolute context counts are not an equal-sample-size comparison. Coverage uses **five artificial control-feature clusters**, not STRING modules. K562 probability calibration improved on acquired examples despite reduced discovery. The [research report](reports/research_report.md) explains these trade-offs, predictive interval undercoverage, negative synthetic results and unexecuted optional variants.
+
+Saved evidence: [synthetic](results/reference_synthetic/summary.md), [component ablations](results/reference_ablations/summary.md), [K562](results/reference_k562/summary.md), [RPE1](results/reference_rpe1/summary.md), [context comparison](results/reference_contexts/summary.md), [model comparison](results/reference_models/summary.md), and [sensitivity](results/reference_sensitivity/summary.md). Large raw H5ADs and full prediction snapshots remain outside Git; their local copies and checksums are retained. Context-comparison raw CSVs duplicate the two source runs and can be regenerated.
+
 ## Installation
 
 Use Python **3.11–3.13** and [uv](https://docs.astral.sh/uv/). No GPU, paid API, or cloud account is required. Run commands from the repository root:
@@ -48,7 +63,7 @@ The synthetic pilot uses 20% of the pool so that its 35% calibration reserve can
 
 The documented primary and secondary datasets are scPertEval's **Replogle 2022 essential-gene panels**, `replogle22k562` and `replogle22rpe1`. They are distinct from the larger genome-wide K562 screen. See the [official dataset documentation](https://scperteval.readthedocs.io/en/latest/user-guide/datasets.html).
 
-On 3 November 2026, this execution environment could read the documentation, but direct object and public metadata requests for both scPertEval H5AD sources returned HTTP 400 after an earlier sandbox DNS failure. This is an access limitation of the environment, not evidence that the public datasets do not exist. The exact essential-panel files were subsequently verified and downloaded from the primary [scPerturb Zenodo release 1.4](https://zenodo.org/records/13350497), with both published MD5 checksums matched. The audit is in `data/manifests/source_verification.json`. At this stage, verified downloads and schema inspection are complete; biological benchmark completion must be established from saved experiment manifests. Biological outcomes must never be inferred from synthetic results.
+On 3 November 2026, this execution environment could read the documentation, but direct object and public metadata requests for both scPertEval H5AD sources returned HTTP 400 after an earlier sandbox DNS failure. This is an access limitation of the environment, not evidence that the public datasets do not exist. The exact essential-panel files were subsequently verified and downloaded from the primary [scPerturb Zenodo release 1.4](https://zenodo.org/records/13350497), with both published MD5 checksums matched. The audit is in `data/manifests/source_verification.json`. Both biological benchmarks are now complete, as recorded in the saved experiment manifests linked above. Biological outcomes must never be inferred from synthetic results.
 
 Inspect and verify before downloading:
 
@@ -229,7 +244,17 @@ uv run --frozen --extra dev calder ablate --config configs/ablations.yaml \
   --sensitivity --run-dir results/development_sensitivity
 ```
 
-Component ablations remove calibration, diversity, uncertainty or similarity; randomize group assignments; or replace informative features. Randomized-group decisions are evaluated against the original fixed groups. The small declared development grid varies pilot size (10%, 20%, 30%), batch size (5, 10, 20), simulated noise (0.05, 0.2, 0.5) and surrogate (Bayesian ridge, RFF, ensemble). Threshold sensitivity is already crossed through the declared quantiles. All declared variants are retained; there is no automatic winner-driven tuning. Use synthetic/development runs to choose and freeze a method before final RPE1 evaluation.
+Component ablations remove calibration, diversity, uncertainty or similarity; randomize group assignments; or replace informative features. Randomized-group decisions are evaluated against the original fixed groups. The general CLI sensitivity grid varies pilot size (10%, 20%, 30%), batch size (5, 10, 20), simulated noise (0.05, 0.2, 0.5) and surrogate (Bayesian ridge, RFF, ensemble). Threshold sensitivity is already crossed through the declared quantiles. All declared variants are retained; there is no automatic winner-driven tuning. Use synthetic/development runs to choose and freeze a method before final RPE1 evaluation.
+
+The delivered smaller, fixed development study can be replayed exactly with:
+
+```bash
+uv run --frozen --extra dev python scripts/run_sensitivity.py --output-dir results/new_sensitivity
+uv run --frozen --extra dev calder benchmark \
+  --config results/reference_models/ensemble/config.json --run-dir results/new_ensemble
+```
+
+Saved JSON configurations are valid inputs to the YAML/JSON loader. The model study uses three development seeds and retains all ensemble convergence warnings; it did not retune the biological method.
 
 Network/control/combined feature comparisons require separately prepared, provenance-matched biological pools. Alternative effect definitions likewise require separate preparation. These are not fabricated by the synthetic component-ablation command. Optional E-distance is a bounded, independently implemented empirical score available through `calder.data.pseudobulk.energy_distance`; it does not replace the primary effect definition.
 

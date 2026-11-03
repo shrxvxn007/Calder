@@ -15,6 +15,15 @@ results/*
 !results/reference_synthetic/
 !results/reference_ablations/
 !results/reference_models/
+!results/reference_sensitivity/
+!results/reference_k562/
+!results/reference_rpe1/
+!results/reference_contexts/
 results/reference_*/trajectories/
 results/reference_models/*/trajectories/
 results/reference_models/**/events.jsonl
+results/reference_sensitivity/*/trajectories/
+results/reference_contexts/rounds.csv
+results/reference_contexts/selections.csv
+results/reference_contexts/prequential.csv
+results/reference_contexts/candidates.csv

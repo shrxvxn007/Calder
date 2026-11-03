@@ -203,21 +203,50 @@ def plot_saved_results(run_dir: Path | str) -> dict[str, dict[str, object]]:
                 for context, matching in context_parts:
                     if matching.dataset.nunique() < 2:
                         continue
-                    name = _slug(context)
-                    fig, axes = plt.subplots(1, 2, figsize=(11, 4.3))
-                    for ax, metric in zip(axes, ("confirmed_hits", "group_coverage"), strict=True):
+                    context_values = context if isinstance(context, tuple) else (context,)
+                    identity = dict(zip(context_keys, context_values, strict=True))
+                    quantile = identity.get("threshold_quantile", "all")
+                    name = f"q-{quantile}_{_slug(identity.get('model', 'all'))}"
+                    fig, axes = plt.subplots(1, 3, figsize=(14, 5.1))
+                    metrics = ["confirmed_hits", "precision", "group_coverage"]
+                    if "precision" not in matching:
+                        metrics.remove("precision")
+                        axes[2].set_visible(False)
+                    labels = {
+                        "confirmed_hits": "Confirmed measured hits",
+                        "precision": "Hit precision per experiment",
+                        "group_coverage": "Distinct fixed groups with hits",
+                    }
+                    for ax, metric in zip(axes, metrics, strict=False):
                         pivot = (
                             matching.groupby(["policy", "dataset"])[metric]
                             .mean()
                             .unstack("dataset")
                         )
                         pivot.plot.bar(ax=ax)
-                        ax.set_ylabel(metric.replace("_", " "))
+                        ax.set_ylabel(labels[metric])
                         ax.tick_params(axis="x", labelrotation=65, labelsize=7)
                         ax.set_xlabel("")
                     fig.suptitle(
-                        f"Independent context reruns, frozen method hyperparameters | {name}"
+                        f"K562 and RPE1: independent context reruns; pilot quantile {quantile}"
                     )
+                    sizes = (
+                        matching.groupby("dataset").n_selected.first()
+                        if "n_selected" in matching
+                        else None
+                    )
+                    if sizes is not None:
+                        caption = "; ".join(
+                            f"{dataset}: {int(n)} measured incl. pilot"
+                            for dataset, n in sizes.items()
+                        )
+                        fig.text(
+                            0.5,
+                            -0.025,
+                            caption + ". Counts reflect different pool sizes; precision is a rate.",
+                            ha="center",
+                            fontsize=9,
+                        )
                     status["figure_6"]["files"].append(_save(fig, folder, f"figure_6_{name}"))
             else:
                 status["figure_6"]["reason"] = (
