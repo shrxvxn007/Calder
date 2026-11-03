@@ -1,0 +1,2 @@
+model,category,message,count
+ensemble,ConvergenceWarning,Stochastic Optimizer: Maximum iterations (300) reached and the optimization hasn't converged yet.,153

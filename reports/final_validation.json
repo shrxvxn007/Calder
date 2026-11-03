@@ -1,0 +1,32 @@
+{
+  "biological_audits": {
+    "k562": {
+      "config_hash": "f22d66d39fdb00d01c7278aefdc90bc7bd0c5d229826df854e0b7227b475e1b1",
+      "execution_git_commit": "7e95d257bd7aaec8247dae6ff8f8d524fdb2c024",
+      "execution_source_tree_hash": "a4055224cc2b528efbbedf5e60840df7ee89f4cf75338d07bbed4c9a83100abf",
+      "pre_query_reveal_pairs_audited": 9360,
+      "source_table_sha256": "12d0a6ed01eeb972ecfd9f304640e2ca135ec0f81dd4bb41502af21efe496254",
+      "status": "passed",
+      "unique_trajectories": 270
+    },
+    "rpe1": {
+      "config_hash": "00f47d76e3508bbcd8248379fcb1b19b0128e1b981597bcaf959e7708ecc44ee",
+      "execution_git_commit": "7e95d257bd7aaec8247dae6ff8f8d524fdb2c024",
+      "execution_source_tree_hash": "a4055224cc2b528efbbedf5e60840df7ee89f4cf75338d07bbed4c9a83100abf",
+      "pre_query_reveal_pairs_audited": 10320,
+      "source_table_sha256": "053f4f785ad3ce1020971980686a8c96223526e2f912009f4323fe757d31ebc6",
+      "status": "passed",
+      "unique_trajectories": 270
+    }
+  },
+  "date": "2026-11-03",
+  "fresh_wheel_install": "passed with declared dependencies in isolated Python3.11 environment",
+  "note": "After both biological executions, only context figure rendering was changed to add precision and clearer labels. Original execution fields remain unchanged; derived rendering has separate provenance.",
+  "pytest": {
+    "failed": 0,
+    "passed": 78
+  },
+  "ruff_check": "passed",
+  "ruff_format": "passed",
+  "wheel_and_sdist": "built"
+}

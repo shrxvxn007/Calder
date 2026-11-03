@@ -1,0 +1,3 @@
+variant,category,message,count
+pilot_fraction_0.1,RuntimeWarning,Using raw probabilities: too few calibration examples or insufficient class/probability variation,192
+noise_scale_0.5,RuntimeWarning,Using raw probabilities: too few calibration examples or insufficient class/probability variation,16

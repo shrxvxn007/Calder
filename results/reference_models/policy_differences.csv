@@ -1,0 +1,13 @@
+scenario,model,hit_difference_calder_minus_poh,group_difference_calder_minus_poh
+A,bayesian_ridge,-3.3333333333333357,0.3333333333333335
+A,ensemble,-3.3333333333333357,0.0
+A,random_features,-5.333333333333329,0.0
+B,bayesian_ridge,-9.333333333333336,0.0
+B,ensemble,-6.0,0.666666666666667
+B,random_features,-3.3333333333333357,0.33333333333333304
+C,bayesian_ridge,-3.0,0.0
+C,ensemble,-4.333333333333332,0.0
+C,random_features,-1.6666666666666679,0.0
+D,bayesian_ridge,-2.333333333333332,0.0
+D,ensemble,-2.6666666666666643,0.33333333333333304
+D,random_features,-0.6666666666666679,0.0

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "experiment_type": "exploratory-development-model-comparison",
+  "source_runs": [
+    {
+      "model": "bayesian_ridge",
+      "path": "bayesian_ridge",
+      "status": "complete",
+      "config_hash": "38e7a5e432551a088e9a3bb7c44bcf0b2b1bb58a380ac7a76fdfd9723c88b836",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "n_trajectories": 36
+    },
+    {
+      "model": "random_features",
+      "path": "random_features",
+      "status": "complete",
+      "config_hash": "0da38cfefe2b730481b801499fb1140bbbff77ffe18958d70cee4ec2fa36d436",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "n_trajectories": 36
+    },
+    {
+      "model": "ensemble",
+      "path": "ensemble",
+      "status": "complete",
+      "config_hash": "31998171dd6443aa63bd75ef02841d4bf6a98fd4d043a4b388533b64a050e052",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "n_trajectories": 36
+    }
+  ],
+  "checks": {
+    "trajectories": 108,
+    "identical_random_trajectories_across_models": true,
+    "paired_thresholds_across_models_and_policies": true
+  },
+  "files": {
+    "seed_level_results.csv": "e7b158ac196a9054c486bd6c47e641244aaa318cfc1589f3d58bac4738d33af0",
+    "results.csv": "b85a9fb2dad0917f9bb0f14e647d647f0db2a5af7229628dea7511ba4854b980",
+    "policy_differences.csv": "d3251369dcc57396f1aca03ab1da714f6c4fcdfb6966e15c39330ecd33cd98d3",
+    "warning_summary.csv": "de7e4f9bf508b164a4bc21167b0b061fb6f9d97c59dfe193d70dc42db7558cca",
+    "summary.md": "68cf7bea63272e327eea479a362312953fa77a11104791fb283f9482d3cf551a"
+  }
+}

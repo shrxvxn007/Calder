@@ -1,0 +1,91 @@
+{
+  "ablations": [
+    "no_calibration",
+    "no_diversity",
+    "no_uncertainty",
+    "no_similarity",
+    "random_groups",
+    "uninformative_features"
+  ],
+  "acquisition": {
+    "diversity_weight": 1.0,
+    "similarity_weight": 0.1,
+    "ucb_beta": 2.0,
+    "uncertainty_weight": 0.1
+  },
+  "dataset": {
+    "bootstrap_replicates": 50,
+    "chunk_size": 2048,
+    "control_label": "control",
+    "effect_weighting": "inverse_variance",
+    "feature_mode": "control",
+    "local_path": null,
+    "max_embedding_controls": 2048,
+    "min_cells": 12,
+    "min_cells_per_gene": 3,
+    "min_genes_per_cell": 200,
+    "n_components": 16,
+    "n_groups": 5,
+    "n_hvg": 1024,
+    "name": "synthetic",
+    "network_mapping": null,
+    "network_path": null,
+    "network_version": null,
+    "normalization": "log_normalized",
+    "perturbation_key": "perturbation",
+    "prepared_path": null,
+    "source_url": null
+  },
+  "experiment_name": "development_sensitivity_pilot_fraction_0.1",
+  "model": {
+    "length_scale": 2.0,
+    "n_features": 128,
+    "name": "random_features",
+    "noise_floor": 0.04,
+    "prior_precision": 1.0
+  },
+  "output_dir": "results",
+  "protocol": {
+    "batch_size": 10,
+    "budget_fractions": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "calibration_fraction": 0.35,
+    "calibration_min_samples": 12,
+    "include_oracle": false,
+    "pilot_fraction": 0.1,
+    "policies": [
+      "probability_of_hit",
+      "calder"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "threshold_quantiles": [
+      0.8
+    ]
+  },
+  "schema_version": 1,
+  "synthetic": {
+    "data_seed": 317,
+    "distribution_shift": 0.8,
+    "group_corruption": 0.25,
+    "group_overlap": 0.1,
+    "heterogeneous_costs": false,
+    "n_candidates": 250,
+    "n_features": 24,
+    "n_groups": 5,
+    "noise_scale": 0.2,
+    "outlier_fraction": 0.02,
+    "scenarios": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+  }
+}

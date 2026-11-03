@@ -1,0 +1,118 @@
+{
+  "figure_1": {
+    "status": "generated",
+    "files": [
+      "figure_1_dataset-synthetic__scenario-A__threshold_quantile-0.7.png",
+      "figure_1_dataset-synthetic__scenario-A__threshold_quantile-0.8.png",
+      "figure_1_dataset-synthetic__scenario-A__threshold_quantile-0.9.png",
+      "figure_1_dataset-synthetic__scenario-B__threshold_quantile-0.7.png",
+      "figure_1_dataset-synthetic__scenario-B__threshold_quantile-0.8.png",
+      "figure_1_dataset-synthetic__scenario-B__threshold_quantile-0.9.png",
+      "figure_1_dataset-synthetic__scenario-C__threshold_quantile-0.7.png",
+      "figure_1_dataset-synthetic__scenario-C__threshold_quantile-0.8.png",
+      "figure_1_dataset-synthetic__scenario-C__threshold_quantile-0.9.png",
+      "figure_1_dataset-synthetic__scenario-D__threshold_quantile-0.7.png",
+      "figure_1_dataset-synthetic__scenario-D__threshold_quantile-0.8.png",
+      "figure_1_dataset-synthetic__scenario-D__threshold_quantile-0.9.png"
+    ]
+  },
+  "figure_2": {
+    "status": "generated",
+    "files": [
+      "figure_2_dataset-synthetic__scenario-A__threshold_quantile-0.7.png",
+      "figure_2_dataset-synthetic__scenario-A__threshold_quantile-0.8.png",
+      "figure_2_dataset-synthetic__scenario-A__threshold_quantile-0.9.png",
+      "figure_2_dataset-synthetic__scenario-B__threshold_quantile-0.7.png",
+      "figure_2_dataset-synthetic__scenario-B__threshold_quantile-0.8.png",
+      "figure_2_dataset-synthetic__scenario-B__threshold_quantile-0.9.png",
+      "figure_2_dataset-synthetic__scenario-C__threshold_quantile-0.7.png",
+      "figure_2_dataset-synthetic__scenario-C__threshold_quantile-0.8.png",
+      "figure_2_dataset-synthetic__scenario-C__threshold_quantile-0.9.png",
+      "figure_2_dataset-synthetic__scenario-D__threshold_quantile-0.7.png",
+      "figure_2_dataset-synthetic__scenario-D__threshold_quantile-0.8.png",
+      "figure_2_dataset-synthetic__scenario-D__threshold_quantile-0.9.png"
+    ]
+  },
+  "figure_3": {
+    "status": "generated",
+    "files": [
+      "figure_3_dataset-synthetic__scenario-A__threshold_quantile-0.7.png",
+      "figure_3_dataset-synthetic__scenario-A__threshold_quantile-0.8.png",
+      "figure_3_dataset-synthetic__scenario-A__threshold_quantile-0.9.png",
+      "figure_3_dataset-synthetic__scenario-B__threshold_quantile-0.7.png",
+      "figure_3_dataset-synthetic__scenario-B__threshold_quantile-0.8.png",
+      "figure_3_dataset-synthetic__scenario-B__threshold_quantile-0.9.png",
+      "figure_3_dataset-synthetic__scenario-C__threshold_quantile-0.7.png",
+      "figure_3_dataset-synthetic__scenario-C__threshold_quantile-0.8.png",
+      "figure_3_dataset-synthetic__scenario-C__threshold_quantile-0.9.png",
+      "figure_3_dataset-synthetic__scenario-D__threshold_quantile-0.7.png",
+      "figure_3_dataset-synthetic__scenario-D__threshold_quantile-0.8.png",
+      "figure_3_dataset-synthetic__scenario-D__threshold_quantile-0.9.png"
+    ]
+  },
+  "figure_4": {
+    "status": "generated",
+    "files": [
+      "figure_4_dataset-synthetic__scenario-A__threshold_quantile-0.7.png",
+      "figure_4_dataset-synthetic__scenario-A__threshold_quantile-0.8.png",
+      "figure_4_dataset-synthetic__scenario-A__threshold_quantile-0.9.png",
+      "figure_4_dataset-synthetic__scenario-B__threshold_quantile-0.7.png",
+      "figure_4_dataset-synthetic__scenario-B__threshold_quantile-0.8.png",
+      "figure_4_dataset-synthetic__scenario-B__threshold_quantile-0.9.png",
+      "figure_4_dataset-synthetic__scenario-C__threshold_quantile-0.7.png",
+      "figure_4_dataset-synthetic__scenario-C__threshold_quantile-0.8.png",
+      "figure_4_dataset-synthetic__scenario-C__threshold_quantile-0.9.png",
+      "figure_4_dataset-synthetic__scenario-D__threshold_quantile-0.7.png",
+      "figure_4_dataset-synthetic__scenario-D__threshold_quantile-0.8.png",
+      "figure_4_dataset-synthetic__scenario-D__threshold_quantile-0.9.png"
+    ]
+  },
+  "figure_5": {
+    "status": "generated",
+    "files": [
+      "figure_5_dataset-synthetic__scenario-A__threshold_quantile-0.7.png",
+      "figure_5_dataset-synthetic__scenario-A__threshold_quantile-0.8.png",
+      "figure_5_dataset-synthetic__scenario-A__threshold_quantile-0.9.png",
+      "figure_5_dataset-synthetic__scenario-B__threshold_quantile-0.7.png",
+      "figure_5_dataset-synthetic__scenario-B__threshold_quantile-0.8.png",
+      "figure_5_dataset-synthetic__scenario-B__threshold_quantile-0.9.png",
+      "figure_5_dataset-synthetic__scenario-C__threshold_quantile-0.7.png",
+      "figure_5_dataset-synthetic__scenario-C__threshold_quantile-0.8.png",
+      "figure_5_dataset-synthetic__scenario-C__threshold_quantile-0.9.png",
+      "figure_5_dataset-synthetic__scenario-D__threshold_quantile-0.7.png",
+      "figure_5_dataset-synthetic__scenario-D__threshold_quantile-0.8.png",
+      "figure_5_dataset-synthetic__scenario-D__threshold_quantile-0.9.png"
+    ]
+  },
+  "figure_6": {
+    "status": "unavailable",
+    "reason": "Both K562 and RPE1 measured benchmark endpoints are required",
+    "files": []
+  },
+  "figure_7": {
+    "status": "generated",
+    "files": [
+      "figure_7_dataset-synthetic__scenario-A__threshold_quantile-0.7.png",
+      "figure_7_dataset-synthetic__scenario-A__threshold_quantile-0.8.png",
+      "figure_7_dataset-synthetic__scenario-A__threshold_quantile-0.9.png",
+      "figure_7_dataset-synthetic__scenario-B__threshold_quantile-0.7.png",
+      "figure_7_dataset-synthetic__scenario-B__threshold_quantile-0.8.png",
+      "figure_7_dataset-synthetic__scenario-B__threshold_quantile-0.9.png",
+      "figure_7_dataset-synthetic__scenario-C__threshold_quantile-0.7.png",
+      "figure_7_dataset-synthetic__scenario-C__threshold_quantile-0.8.png",
+      "figure_7_dataset-synthetic__scenario-C__threshold_quantile-0.9.png",
+      "figure_7_dataset-synthetic__scenario-D__threshold_quantile-0.7.png",
+      "figure_7_dataset-synthetic__scenario-D__threshold_quantile-0.8.png",
+      "figure_7_dataset-synthetic__scenario-D__threshold_quantile-0.9.png"
+    ]
+  },
+  "figure_8": {
+    "status": "generated",
+    "files": [
+      "figure_8_dataset-synthetic__scenario-A.png",
+      "figure_8_dataset-synthetic__scenario-B.png",
+      "figure_8_dataset-synthetic__scenario-C.png",
+      "figure_8_dataset-synthetic__scenario-D.png"
+    ]
+  }
+}

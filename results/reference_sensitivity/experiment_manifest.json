@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "experiment_type": "exploratory-one-factor-sensitivity",
+  "base_config": "/Users/shrxvxn/Downloads/Calder/configs/sensitivity.yaml",
+  "base_config_sha256": "60493f36a66932bea265690c25d92832f6880689d25bfca58fb1c035ff897150",
+  "grid": {
+    "pilot_fraction": [
+      0.1,
+      0.2,
+      0.3
+    ],
+    "batch_size": [
+      5,
+      10,
+      20
+    ],
+    "noise_scale": [
+      0.05,
+      0.2,
+      0.5
+    ]
+  },
+  "source_runs": [
+    {
+      "variant": "pilot_fraction_0.1",
+      "axis": "pilot_fraction",
+      "factor_value": 0.1,
+      "path": "/Users/shrxvxn/Downloads/Calder/results/reference_sensitivity/pilot_fraction_0.1",
+      "config_hash": "b9d78f3a0b1188aa146f1412877dc98aaafff753faf6683dd687a3f9c8477b59",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "source_tree_hash": "f527412ac7433f369634a59a4a6f5a14269057765313cabcd396f64b36bca78b",
+      "n_trajectories": 24
+    },
+    {
+      "variant": "pilot_fraction_0.2",
+      "axis": "pilot_fraction",
+      "factor_value": 0.2,
+      "path": "/Users/shrxvxn/Downloads/Calder/results/reference_sensitivity/pilot_fraction_0.2",
+      "config_hash": "876da6aa4dbf447e8bb34223d0564ff322d52da612b640c2835c7bad13649124",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "source_tree_hash": "f527412ac7433f369634a59a4a6f5a14269057765313cabcd396f64b36bca78b",
+      "n_trajectories": 24
+    },
+    {
+      "variant": "pilot_fraction_0.3",
+      "axis": "pilot_fraction",
+      "factor_value": 0.3,
+      "path": "/Users/shrxvxn/Downloads/Calder/results/reference_sensitivity/pilot_fraction_0.3",
+      "config_hash": "653dbccd752e22099fe97dd1fcb03b0f56ba4e1b855e2903935e183388f38d92",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "source_tree_hash": "f527412ac7433f369634a59a4a6f5a14269057765313cabcd396f64b36bca78b",
+      "n_trajectories": 24
+    },
+    {
+      "variant": "batch_size_5",
+      "axis": "batch_size",
+      "factor_value": 5,
+      "path": "/Users/shrxvxn/Downloads/Calder/results/reference_sensitivity/batch_size_5",
+      "config_hash": "ffb797e9c17d56dc391308dc4eca752fbdb780f3c0438dff1ed353527c0e4083",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "source_tree_hash": "f527412ac7433f369634a59a4a6f5a14269057765313cabcd396f64b36bca78b",
+      "n_trajectories": 24
+    },
+    {
+      "variant": "batch_size_10",
+      "axis": "batch_size",
+      "factor_value": 10,
+      "path": "/Users/shrxvxn/Downloads/Calder/results/reference_sensitivity/batch_size_10",
+      "config_hash": "bd188f33c29b9bee36a8ea526d696911f9be097e867d74f45c07431c689b8a36",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "source_tree_hash": "f527412ac7433f369634a59a4a6f5a14269057765313cabcd396f64b36bca78b",
+      "n_trajectories": 24
+    },
+    {
+      "variant": "batch_size_20",
+      "axis": "batch_size",
+      "factor_value": 20,
+      "path": "/Users/shrxvxn/Downloads/Calder/results/reference_sensitivity/batch_size_20",
+      "config_hash": "26e9dbeba9a4a4bde73ae33e9410ec236074878a52b3a45456107ec1aed9e04d",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "source_tree_hash": "f527412ac7433f369634a59a4a6f5a14269057765313cabcd396f64b36bca78b",
+      "n_trajectories": 24
+    },
+    {
+      "variant": "noise_scale_0.05",
+      "axis": "noise_scale",
+      "factor_value": 0.05,
+      "path": "/Users/shrxvxn/Downloads/Calder/results/reference_sensitivity/noise_scale_0.05",
+      "config_hash": "fa3ed60cd4d3f0bd8a22f91ea886a115189791596554bbe2ae3c76bbd637372b",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "source_tree_hash": "f527412ac7433f369634a59a4a6f5a14269057765313cabcd396f64b36bca78b",
+      "n_trajectories": 24
+    },
+    {
+      "variant": "noise_scale_0.2",
+      "axis": "noise_scale",
+      "factor_value": 0.2,
+      "path": "/Users/shrxvxn/Downloads/Calder/results/reference_sensitivity/noise_scale_0.2",
+      "config_hash": "79d1d405eff6e38215c616f990ce494e39cbf2ee5891e71f8e4fa0e13a52d58e",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "source_tree_hash": "f527412ac7433f369634a59a4a6f5a14269057765313cabcd396f64b36bca78b",
+      "n_trajectories": 24
+    },
+    {
+      "variant": "noise_scale_0.5",
+      "axis": "noise_scale",
+      "factor_value": 0.5,
+      "path": "/Users/shrxvxn/Downloads/Calder/results/reference_sensitivity/noise_scale_0.5",
+      "config_hash": "1c7ff6c0ce95aa9d6b73d837c41868f61bf7d6b46fb8940bc2983a226dbeafae",
+      "git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+      "git_dirty": true,
+      "source_tree_hash": "f527412ac7433f369634a59a4a6f5a14269057765313cabcd396f64b36bca78b",
+      "n_trajectories": 24
+    }
+  ],
+  "n_trajectories": 216,
+  "checks": {
+    "paired_thresholds": true,
+    "paired_realized_budgets": true,
+    "three_base_setting_trajectories_identical": true
+  },
+  "files": {
+    "summary.csv": "a4267aafa353711d28c2752c94ddebc062f804dadd608f7b2c8373cf0a40f7d0",
+    "seed_level_results.csv": "d8d13d146fba17783747173ea5b7c4d5b019638275ecddbb919912d3abb056b1",
+    "paired_differences.csv": "f6b36cadf64b39fb57f229e184fbdb85d791bbd54ff9408f34ec811ab083aa7d",
+    "warning_summary.csv": "4df953509e42cfea4b34b2131a2d2f1c30063ea53951df4f5c689ea21fdef0d7",
+    "summary.md": "7da71e49f2bbb8e5024b832dca17d5af03af2ed3689685d1cbe0b92fbf0cf56b"
+  }
+}
