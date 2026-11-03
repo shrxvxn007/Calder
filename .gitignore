@@ -15,3 +15,6 @@ results/*
 !results/reference_synthetic/
 !results/reference_ablations/
 !results/reference_models/
+results/reference_*/trajectories/
+results/reference_models/*/trajectories/
+results/reference_models/**/events.jsonl

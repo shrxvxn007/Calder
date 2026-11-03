@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import logging
+
 import numpy as np
 from scipy import sparse
 
 from calder.data.preprocess import iter_blocks
+
+LOGGER = logging.getLogger(__name__)
 
 
 def control_moments(adata, control_mask, normalization_status: str, chunk_size: int = 2048):
@@ -13,7 +17,12 @@ def control_moments(adata, control_mask, normalization_status: str, chunk_size: 
     squares = np.zeros(adata.n_vars)
     detected = np.zeros(adata.n_vars)
     n = 0
+    next_progress = 20
     for start, stop, block in iter_blocks(adata, chunk_size, normalization_status):
+        percent = int(100 * stop / adata.n_obs)
+        if percent >= next_progress:
+            LOGGER.info("Control-only moments: %d%% of sequential input scan", percent)
+            next_progress = (percent // 20 + 1) * 20
         x = block[np.asarray(control_mask[start:stop], dtype=bool)]
         if not x.shape[0]:
             continue

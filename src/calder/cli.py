@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import logging
 import shutil
 import subprocess
 import sys
@@ -23,6 +24,12 @@ data_app = typer.Typer(help="Inspect, verify, download and prepare public or loc
 app.add_typer(data_app, name="data")
 
 
+@app.callback()
+def configure_logging() -> None:
+    """Show bounded phase/progress logs on stderr while preserving data stdout."""
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+
+
 def _error(exc: Exception) -> None:
     typer.secho(f"Error: {exc}", fg=typer.colors.RED, err=True)
     raise typer.Exit(1)
@@ -34,6 +41,7 @@ def data_inspect(
     path: Path | None = None,
     perturbation_key: str = "perturbation",
     control_label: str = "control",
+    source: str = "scperteval",
 ) -> None:
     """Inspect a local H5AD schema; without --path verify remote metadata only."""
     from calder.data.download import verify_remote
@@ -43,7 +51,7 @@ def data_inspect(
         info = (
             inspect_dataset(path, perturbation_key=perturbation_key, control_label=control_label)
             if path
-            else verify_remote(dataset)
+            else verify_remote(dataset, source=source)
         )
         typer.echo(json.dumps(info, indent=2, default=json_default))
     except (OSError, ValueError, KeyError, RuntimeError) as exc:
@@ -52,13 +60,18 @@ def data_inspect(
 
 @data_app.command("download")
 def data_download(
-    dataset: str = "replogle22k562", destination: Path = Path("data/raw"), max_gb: float = 2.0
+    dataset: str = "replogle22k562",
+    destination: Path = Path("data/raw"),
+    max_gb: float = 2.0,
+    source: str = "scperteval",
 ) -> None:
     """Verify metadata and stream a bounded download; never substitute synthetic data."""
     from calder.data.download import download_dataset
 
     try:
-        typer.echo(str(download_dataset(dataset, destination, max_bytes=int(max_gb * 1e9))))
+        typer.echo(
+            str(download_dataset(dataset, destination, max_bytes=int(max_gb * 1e9), source=source))
+        )
     except (OSError, ValueError, RuntimeError) as exc:
         _error(exc)
 
@@ -83,12 +96,16 @@ def data_prepare(
             if ds.local_path
             else Path(f"data/raw/{resolved_dataset}_processed_complete.h5ad")
         )
-        target = output_dir or Path(f"data/processed/{resolved_dataset}")
+        target = output_dir or Path(ds.prepared_path or f"data/processed/{resolved_dataset}")
+        sidecar = local.with_suffix(".download.json")
+        source_url = ds.source_url or (
+            json.loads(sidecar.read_text()).get("url") if sidecar.exists() else None
+        )
         pool, _ = prepare_dataset(
             local,
             target,
             dataset=resolved_dataset,
-            source_url=dataset_url(resolved_dataset),
+            source_url=source_url or dataset_url(resolved_dataset),
             perturbation_key=ds.perturbation_key,
             control_label=ds.control_label,
             normalization_status=ds.normalization,

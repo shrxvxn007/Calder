@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import warnings
+from contextlib import ExitStack
 from pathlib import Path
 
 import numpy as np
@@ -15,7 +16,7 @@ from calder.data.download import DATASETS, file_sha256
 from calder.data.gene_features import control_features, feature_clusters
 from calder.data.network import network_features
 from calder.data.perturbations import eligible_perturbations
-from calder.data.preprocess import collect_rows, quality_mask
+from calder.data.preprocess import collect_rows, quality_mask, response_cache
 from calder.data.pseudobulk import bootstrap_means, estimate_response
 from calder.data.validation import validate_adata
 from calder.types import CandidatePool, OutcomeTable
@@ -143,11 +144,26 @@ def prepare_dataset(
         )
     rng = np.random.default_rng(seed)
     data = ad.read_h5ad(path, backed="r")
+    resources = ExitStack()
     try:
         validate_adata(data, perturbation_key, control_label)
+        LOGGER.info(
+            "Preparing %s: %d cells, %d genes; declared scale=%s",
+            path,
+            data.n_obs,
+            data.n_vars,
+            normalization_status,
+        )
         labels = data.obs[perturbation_key].astype(str).to_numpy()
+        LOGGER.info("Applying configured cell quality criteria in sequential chunks")
         keep = quality_mask(data, normalization_status, min_expressed_genes, chunk_size)
         controls = keep & (labels == control_label)
+        LOGGER.info(
+            "Cell QC retained %d/%d cells (%d controls); estimating control-only moments",
+            int(keep.sum()),
+            data.n_obs,
+            int(controls.sum()),
+        )
         means, variances, detection, n_controls = control_moments(
             data, controls, normalization_status, chunk_size
         )
@@ -163,13 +179,31 @@ def prepare_dataset(
         if not len(eligible_genes):
             raise ValueError("No expression genes pass control-only detection filtering")
         hvg_columns = eligible_genes[np.argsort(-variances[eligible_genes], kind="stable")[:hvg_n]]
+        LOGGER.info(
+            "Selected %d candidate perturbations and %d control-selected response genes; excluded %d perturbation labels",
+            len(candidates),
+            len(hvg_columns),
+            len(exclusions),
+        )
         # All dimensionality reduction uses untreated controls, including candidate genes.
         control_rows = np.flatnonzero(controls)
         embedding_rows = np.sort(
             rng.choice(control_rows, min(max_embedding_controls, n_controls), replace=False)
         )
-        embedding_matrix = collect_rows(
-            data, embedding_rows, columns, normalization_status, chunk_size
+        cached_responses, embedding_matrix = resources.enter_context(
+            response_cache(
+                data,
+                hvg_columns,
+                embedding_rows,
+                columns,
+                normalization_status,
+                output_dir,
+                chunk_size,
+            )
+        )
+        LOGGER.info(
+            "Fitting control-only candidate features and fixed groups from %d embedding controls",
+            len(embedding_rows),
         )
         features = control_features(
             embedding_matrix, means, variances, detection, columns, seed, n_components
@@ -186,10 +220,16 @@ def prepare_dataset(
                 features = np.column_stack((features, net_features))
         if feature_mode == "uninformative":
             features = rng.normal(size=features.shape)
-        control_matrix = collect_rows(
-            data, control_rows, hvg_columns, normalization_status, chunk_size
+        control_matrix = (
+            np.asarray(cached_responses[control_rows], dtype=float)
+            if cached_responses is not None
+            else collect_rows(data, control_rows, hvg_columns, normalization_status, chunk_size)
         )
         bootstrap_controls = bootstrap_means(control_matrix, bootstrap_replicates, rng)
+        LOGGER.info(
+            "Estimating perturbation responses with %d bootstrap replicates each",
+            bootstrap_replicates,
+        )
         response_mean = means[hvg_columns]
         if effect_weighting == "inverse_variance":
             weights = inverse_variance_weights(
@@ -198,9 +238,13 @@ def prepare_dataset(
         else:
             weights = np.full(len(hvg_columns), 1 / len(hvg_columns))
         table = []
-        for gene in candidates:
+        for gene_index, gene in enumerate(candidates, start=1):
             rows = np.flatnonzero(keep & (labels == gene))
-            matrix = collect_rows(data, rows, hvg_columns, normalization_status, chunk_size)
+            matrix = (
+                np.asarray(cached_responses[rows], dtype=float)
+                if cached_responses is not None
+                else collect_rows(data, rows, hvg_columns, normalization_status, chunk_size)
+            )
             estimate = estimate_response(
                 matrix, response_mean, weights, bootstrap_controls, rng, epsilon
             )
@@ -213,6 +257,10 @@ def prepare_dataset(
                     "source": source_url or DATASETS.get(dataset, str(path.resolve())),
                 }
             )
+            if gene_index % 250 == 0 or gene_index == len(candidates):
+                LOGGER.info(
+                    "Response bootstrap: %d/%d perturbations complete", gene_index, len(candidates)
+                )
         frame = pd.DataFrame(table)
         if (frame.cell_count < 30).any():
             warnings.warn(
@@ -259,6 +307,12 @@ def prepare_dataset(
             if network_metadata is None
             else "STRING association network modules",
             "network": network_metadata,
+            "expression_access": "sequential dense-backed chunks with temporary float32 response-column memmap"
+            if cached_responses is not None
+            else "sparse backed row chunks; sparse storage preserved",
+            "temporary_cache_bytes": data.n_obs * len(hvg_columns) * 4
+            if cached_responses is not None
+            else 0,
         }
         download_manifest = path.with_suffix(".download.json")
         if download_manifest.exists():
@@ -293,11 +347,17 @@ def prepare_dataset(
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         frame.to_csv(Path(output_dir) / "perturbations.csv", index=False)
         LOGGER.info(
-            "Prepared %d cells, %d expression genes and %d perturbations",
-            int(keep.sum()),
+            "Prepared %d perturbation cells plus %d controls, %d response genes and %d candidates in %s; excluded %d cells",
+            int(frame.cell_count.sum()),
+            n_controls,
             len(hvg_columns),
             len(candidates),
+            output_dir,
+            manifest["excluded_cells"],
         )
         return pool, outcomes
     finally:
-        data.file.close()
+        try:
+            resources.close()
+        finally:
+            data.file.close()

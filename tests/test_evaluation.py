@@ -17,6 +17,7 @@ from calder.evaluation.coverage import confirmed_group_coverage, expected_new_gr
 from calder.evaluation.hit_metrics import area_under_discovery, discovery_metrics
 from calder.evaluation.leakage import assert_disjoint, assert_same_decision, assert_unique_selection
 from calder.evaluation.reports import (
+    _model_noise_from_config,
     build_context_comparison,
     build_report,
     calibration_summary,
@@ -67,6 +68,32 @@ def test_interval_targets_and_zero_variance():
     assert predictive_interval_coverage([0, 0], [0, 1], [0, 2]) == 0.5
     with pytest.raises(ValueError):
         predictive_interval_coverage([0], [-1], [0])
+
+
+def test_measured_predictive_interval_includes_likelihood_floor_only_for_measured_targets(tmp_path):
+    frame = pd.DataFrame(
+        {
+            "policy": ["calder"],
+            "seed": [0],
+            "probability": [0.8],
+            "is_hit": [True],
+            "latent_label": [True],
+            "mean": [0.0],
+            "observed_effect": [0.3],
+            "latent_effect": [0.3],
+            "noise_variance": [0.0],
+            "epistemic_variance": [0.0],
+        }
+    )
+    config = tmp_path / "config.json"
+    config.write_text(json.dumps({"model": {"noise_floor": 0.04}}))
+    restored = _model_noise_from_config(frame, config)
+    assert "model_noise_variance" not in frame
+    assert restored.model_noise_variance.iloc[0] == 0.04
+    scores = calibration_summary(restored).set_index("label_target")
+    assert scores.loc["measured", "interval_target"] == "measured_predictive_model_assumed"
+    assert scores.loc["measured", "interval_coverage_95"] == 1.0
+    assert scores.loc["latent", "interval_coverage_95"] == 0.0
 
 
 def test_paired_bootstrap_preserves_pairing_and_rejects_ambiguous_rows():
@@ -122,6 +149,16 @@ def test_report_uses_actual_outputs_and_marks_missing_biology(tmp_path):
     assert row.mean_difference == -1
     assert result["figure_status"]["figure_6"]["status"] == "unavailable"
     assert "controlled synthetic simulation" in (tmp_path / "summary.md").read_text()
+    report = (tmp_path / "research_report.md").read_text()
+    assert "confirmed-hit mean differences ranged from -1 to -1" in report
+    assert "Biological K562–RPE1 performance remains unmeasured" in report
+    manifest = json.loads((tmp_path / "experiment_manifest.json").read_text())
+    assert manifest["config_hash"] == "abc"
+    assert manifest["git_commit"] is None
+    assert "source_tree_hash" in manifest["report_generation_provenance"]
+    from calder.utils.serialization import file_sha256
+
+    assert manifest["files"]["research_report.md"] == file_sha256(tmp_path / "research_report.md")
 
 
 def test_calibration_report_distinguishes_measured_and_latent_targets():

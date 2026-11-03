@@ -71,10 +71,24 @@ def environment_provenance() -> dict:
             dependencies[package] = importlib.metadata.version(package)
         except importlib.metadata.PackageNotFoundError:
             dependencies[package] = "unavailable"
+    project_root = Path(__file__).resolve().parents[3]
+    source_paths = [
+        *sorted((project_root / "src").glob("**/*.py")),
+        project_root / "pyproject.toml",
+        project_root / "uv.lock",
+    ]
+    source_files = {
+        str(path.relative_to(project_root)): file_sha256(path)
+        for path in source_paths
+        if path.is_file()
+    }
     return {
         "python": platform.python_version(),
         "platform": platform.platform(),
         "git_commit": git("rev-parse", "HEAD"),
         "git_dirty": bool(git("status", "--porcelain")),
+        "git_tracked_dirty": bool(git("status", "--porcelain", "--untracked-files=no")),
+        "source_tree_hash": content_hash(source_files),
+        "source_files": source_files,
         "dependencies": dependencies,
     }

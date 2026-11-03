@@ -1,0 +1,14 @@
+{
+  "source_run": "results/reference_synthetic",
+  "source_manifest_sha256": "d498aeae12e121add5080a37b8d079483d2a7798100221c9c8c32730e7fb5d96",
+  "source_config_json_sha256": "1f985e8d439210527935c4baa77aef48db6aac4f5a06a4088ff438c0d0205679",
+  "source_selections_sha256": "631c43eb569c58c83805c8b6040c0c3e1d18a44766f472cfc28ed9c09e897f79",
+  "source_snapshot_inventory_hash": "dcccdf85328cb6b124cba1fe952027762a0e9f580174abf78cc90045e774d918",
+  "source_config_hash": "a76b99c6129af0d9adc3ed4cb1beaf456ba1beb0fa75f28503d87191a1ec2a52",
+  "source_git_commit": "15de4bebfb212eca645a74806bafbee35beb3a5b",
+  "threshold_quantile": 0.8,
+  "policy": "calder",
+  "n_snapshots": 280,
+  "csv_sha256": "a542a9bb42ff448fe1a826943977fb18c57fc40466043a47dd0682efb3c74f63",
+  "interpretation": "Descriptive snapshot/greedy-objective audit; no causal mechanism or tuning claim"
+}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
 import resource
 import sys
 import time
@@ -365,6 +366,8 @@ def run_benchmark(
             from calder.evaluation.reports import build_report
 
             build_report(output)
+            # Preserve the report's separate generation provenance when finalizing.
+            manifest = json.loads((output / "experiment_manifest.json").read_text())
         manifest["files"] = {
             str(p.relative_to(output)): file_sha256(p)
             for p in sorted(output.glob("**/*"))

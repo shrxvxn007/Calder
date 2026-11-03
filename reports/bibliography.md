@@ -14,6 +14,8 @@ Verification date: 3 November 2026. Primary sources are used below. Bibliographi
 
 6. Replogle, J. M., et al. (2022). *Mapping information-rich genotype-phenotype landscapes with genome-scale Perturb-seq*. Cell 185, 2559–2575.e28. [DOI](https://doi.org/10.1016/j.cell.2022.05.013). Primary study for the Replogle essential-gene perturbation datasets, linked by the scPertEval dataset documentation. Cite the original experimental authors when reporting retrospective biological results.
 
+7. Peidli, S., Green, T. D., Shen, C., et al. (2022; release 1.4). *scPerturb Single-Cell Perturbation Data: RNA and protein h5ad files*. Zenodo. [Record 13350497](https://zenodo.org/records/13350497), [DOI](https://doi.org/10.5281/zenodo.13350497). This release provides an alternative harmonized source for the exact Replogle K562 essential and RPE1 panels. The public record API and file HEAD requests were verified on 3 November 2026. Preparation must validate this source's own annotation schema and expression scale; it is not the scPertEval processed release. Download checksums and sizes are recorded separately in data manifests.
+
 ## Verification limits
 
 No result from these sources is imported into CALDER's experiment tables. The code does not recreate another paper's unpublished implementation choices. Source metadata do not establish successful local download or preprocessing; those facts belong to the run manifests. Raw and processed data can change independently of documentation, so checksums are part of data provenance.

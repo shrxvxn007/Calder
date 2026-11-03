@@ -48,7 +48,7 @@ The synthetic pilot uses 20% of the pool so that its 35% calibration reserve can
 
 The documented primary and secondary datasets are scPertEval's **Replogle 2022 essential-gene panels**, `replogle22k562` and `replogle22rpe1`. They are distinct from the larger genome-wide K562 screen. See the [official dataset documentation](https://scperteval.readthedocs.io/en/latest/user-guide/datasets.html).
 
-On 3 November 2026, this execution environment could read the documentation, but direct object and public metadata requests for both H5AD sources returned HTTP 400 after an earlier sandbox DNS failure. This is an access limitation of the environment, not evidence that the public datasets do not exist. The record is in `data/manifests/source_verification.json`. **The K562 and RPE1 scientific benchmarks remain pending verified biological input.** Their outcomes and context comparison must not be inferred from synthetic results.
+On 3 November 2026, this execution environment could read the documentation, but direct object and public metadata requests for both scPertEval H5AD sources returned HTTP 400 after an earlier sandbox DNS failure. This is an access limitation of the environment, not evidence that the public datasets do not exist. The exact essential-panel files were subsequently verified and downloaded from the primary [scPerturb Zenodo release 1.4](https://zenodo.org/records/13350497), with both published MD5 checksums matched. The audit is in `data/manifests/source_verification.json`. At this stage, verified downloads and schema inspection are complete; biological benchmark completion must be established from saved experiment manifests. Biological outcomes must never be inferred from synthetic results.
 
 Inspect and verify before downloading:
 
@@ -60,6 +60,36 @@ uv run --frozen --extra dev calder data download --dataset replogle22rpe1 --max-
 ```
 
 Downloads stream to disk, enforce a size limit and record source/checksum information. Increase `--max-gb` only after checking the verified object size and available space. The source pattern is `https://storage.googleapis.com/scperteval/processed/<dataset>_processed_complete.h5ad`. An unavailable source produces an actionable error; there is no automatic synthetic substitute.
+
+The explicitly selected alternative is the same published essential-gene panel in scPerturb's harmonized **raw-count** representation. It is not assumed to have scPertEval's preprocessing. The [official scPertEval preparation tutorial](https://scperteval.readthedocs.io/en/v0.2.0/notebooks/02_preparing_a_dataset.html) also identifies this K562 essential file as a supported raw source.
+
+| Context | Exact Zenodo filename | Verified bytes | Published and matched MD5 |
+| --- | --- | ---: | --- |
+| K562 essential | `ReplogleWeissman2022_K562_essential.h5ad` | 1,546,729,675 | `d8cba17576d1a8afc0f7d71b79cad0f7` |
+| RPE1 essential | `ReplogleWeissman2022_rpe1.h5ad` | 1,236,886,900 | `cc7f1ec50aeb3a3e1b4a6cfa713d80fa` |
+
+Download each file once, then inspect and prepare using its separate count-scale config:
+
+```bash
+uv run --frozen --extra dev calder data inspect --dataset replogle22k562 --source scperturb
+uv run --frozen --extra dev calder data download --dataset replogle22k562 --source scperturb --max-gb 2
+uv run --frozen --extra dev calder data inspect --dataset replogle22rpe1 --source scperturb
+uv run --frozen --extra dev calder data download --dataset replogle22rpe1 --source scperturb --max-gb 2
+
+uv run --frozen --extra dev calder data inspect \
+  --path data/raw/ReplogleWeissman2022_K562_essential.h5ad
+uv run --frozen --extra dev calder data inspect \
+  --path data/raw/ReplogleWeissman2022_rpe1.h5ad
+uv run --frozen --extra dev calder data prepare --config configs/replogle_k562_scperturb.yaml
+uv run --frozen --extra dev calder data prepare --config configs/replogle_rpe1_scperturb.yaml
+
+uv run --frozen --extra dev calder validate-contexts \
+  --k562-config configs/replogle_k562_scperturb.yaml \
+  --rpe1-config configs/replogle_rpe1_scperturb.yaml \
+  --output-dir results/context_validation_scperturb
+```
+
+These count-scale configs preserve the same surrogate, acquisition and evaluation settings as the original biological configs. They declare the exact source URL, local filename and distinct prepared directory. Inspection found backed dense float32 expression, integer nonnegative values in the inspected sample, unique gene-symbol identifiers, `obs['perturbation']` and controls labelled `control`. K562 contains 310,385 cells and 10,691 controls; RPE1 contains 247,914 cells and 11,485 controls. Full preparation validates count-scale values in every chunk. Targets absent from the expression-gene index are excluded with recorded reasons; this is a declared representation-availability criterion, not an outcome-ranked subset.
 
 A verified local file is equally supported:
 
@@ -77,11 +107,11 @@ uv run --frozen --extra dev calder data prepare \
 uv run --frozen --extra dev calder benchmark --config configs/replogle_rpe1.yaml
 ```
 
-Before preparation, edit a copy of the relevant config if your schema differs. `dataset.perturbation_key`, `control_label`, `normalization`, `local_path` and `prepared_path` declare the input convention and destinations. The defaults expect `obs['perturbation']`, the control label `control`, unique gene identifiers in `var_names`, and log-normalized `X`. Inspect these assumptions on the actual file. Gene symbols and Ensembl IDs are not silently treated as interchangeable.
+Before preparation, edit a copy of the relevant config if your schema differs. `dataset.perturbation_key`, `control_label`, `normalization`, `source_url`, `local_path` and `prepared_path` declare the input convention and destinations. `--path` and `--output-dir` override configured paths. A download sidecar can supply the source URL when the config does not specify one. The original scPertEval configs expect `obs['perturbation']`, the control label `control`, unique gene identifiers in `var_names`, and log-normalized `X`; the separate `_scperturb` configs expect raw counts. Inspect these assumptions on the actual file. Gene symbols and Ensembl IDs are not silently treated as interchangeable.
 
 `normalization: log_normalized` preserves `X`. For validated raw counts, set `normalization: counts`; the pipeline applies library-size normalization to 10,000 and `log1p` once. Raw-count cell QC is skipped and recorded as unavailable for already normalized input. Minimum perturbation size is 12 cells; the count-scale minimum is 200 expressed genes per cell. Response genes pass a detection filter in controls and are ranked by **control-only expression variance**, up to 1,024 genes. This is a documented variance-selection procedure, not a claim to reproduce a particular scanpy HVG method.
 
-The loader uses backed AnnData and chunked/sparse access. It excludes ambiguous, combinatorial, unmapped and under-supported perturbations, records reasons, and materializes only bounded subsets required for statistics, bootstrap means and control embeddings. Keep raw/processed data outside Git; large files are ignored.
+The loader uses backed AnnData and chunked/sparse access. It excludes ambiguous, combinatorial, unmapped and under-supported perturbations, records reasons, and materializes only bounded subsets required for statistics, bootstrap means and control embeddings. Compressed dense HDF5 files are read sequentially into a temporary float32 disk cache of selected response columns; this avoids repeatedly decompressing large raw chunks for each perturbation. The cache is removed on success or failure. With 1,024 response genes, allow approximately 1.27 GB temporary space for K562 or 1.02 GB for RPE1, in addition to the 2.78 GB of raw downloads. Prepare the contexts serially. Sparse inputs retain sparse storage. Dense/sparse fixture equivalence is tested to `1e-6` tolerance, and cache precision/access strategy are recorded in the manifest. Keep raw/processed data outside Git; large files are ignored.
 
 ### Effect definition and uncertainty
 

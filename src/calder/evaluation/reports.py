@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import json
 import re
 from pathlib import Path
@@ -17,6 +18,7 @@ from calder.evaluation.calibration import (
 )
 from calder.evaluation.plots import STRATA, plot_saved_results
 from calder.evaluation.statistics import bootstrap_interval, paired_policy_difference
+from calder.utils.serialization import environment_provenance, file_sha256, write_json
 
 
 def _read_csv(path: Path) -> pd.DataFrame:
@@ -132,7 +134,11 @@ def calibration_summary(prequential: pd.DataFrame) -> pd.DataFrame:
                     variance = filtered.epistemic_variance.to_numpy(float)
                     if target_name == "measured" and "noise_variance" in filtered:
                         variance = variance + filtered.noise_variance.to_numpy(float)
-                        record["interval_target"] = "measured_predictive"
+                        if "model_noise_variance" in filtered:
+                            variance = variance + filtered.model_noise_variance.to_numpy(float)
+                            record["interval_target"] = "measured_predictive_model_assumed"
+                        else:
+                            record["interval_target"] = "measured_predictive_sampling_only"
                     elif target_name == "latent":
                         record["interval_target"] = "latent_epistemic"
                     else:
@@ -144,6 +150,32 @@ def calibration_summary(prequential: pd.DataFrame) -> pd.DataFrame:
                     )
                 records.append(record)
     return pd.DataFrame(records)
+
+
+def _model_noise_from_config(prequential: pd.DataFrame, config_path: Path) -> pd.DataFrame:
+    """Restore a likelihood-discrepancy floor for older saved runs, in memory only."""
+    if prequential.empty or not config_path.exists():
+        return prequential
+    config = json.loads(config_path.read_text())
+    frame = prequential.copy()
+    if "model_noise_variance" not in frame:
+        frame["model_noise_variance"] = np.nan
+    if "model" in config and "noise_floor" in config["model"]:
+        frame["model_noise_variance"] = frame.model_noise_variance.fillna(
+            float(config["model"]["noise_floor"])
+        )
+    elif "source_configs" in config and "dataset" in frame:
+        for source in config["source_configs"]:
+            name = source.get("dataset", {}).get("name")
+            floor = source.get("model", {}).get("noise_floor")
+            if name is not None and floor is not None:
+                mask = (frame.dataset == name) & frame.model_noise_variance.isna()
+                frame.loc[mask, "model_noise_variance"] = float(floor)
+    if frame.model_noise_variance.isna().all():
+        return frame.drop(columns="model_noise_variance")
+    if not np.isfinite(frame.model_noise_variance).all() or (frame.model_noise_variance < 0).any():
+        raise ValueError("Configured model-discrepancy variances must be finite and nonnegative")
+    return frame
 
 
 def detailed_calibration_tables(prequential: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -224,7 +256,9 @@ def build_report(run_dir: Path | str) -> dict[str, object]:
         )
     summary = summarize_endpoints(endpoints)
     summary.to_csv(root / "results.csv", index=False)
-    prequential = _read_csv(root / "prequential.csv")
+    prequential = _model_noise_from_config(
+        _read_csv(root / "prequential.csv"), root / "config.json"
+    )
     calibration = calibration_summary(prequential)
     calibration.to_csv(root / "calibration.csv", index=False)
     reliability, grouped = detailed_calibration_tables(prequential)
@@ -300,6 +334,7 @@ def build_report(run_dir: Path | str) -> dict[str, object]:
         _markdown_table(comparisons),
         "## Calibration and prediction\n",
         "`calibration.csv` reports raw, pilot-calibrated and acquisition-used probability diagnostics: Brier score, fixed-bin ECE, prediction error, uncertainty–error association and interval coverage. Bin counts and group-specific diagnostics are in `reliability.csv` and `grouped_calibration.csv`. These are pre-query predictions on adaptively acquired examples. Selection bias prevents interpreting them as exchangeable population-level validation. Latent probabilities evaluated against noisy measured hit labels also reflect label noise. Calibration fitted to measured pilot hit labels is a measured-label correction, not guaranteed latent-effect calibration.\n",
+        "Measured predictive intervals add the recorded sampling variance and configured likelihood-discrepancy variance floor to epistemic variance. Their target is labelled `measured_predictive_model_assumed`; this is a model assumption and is heuristic for ridge or ensemble uncertainty. Older saved runs restore the floor from their resolved configuration in memory, preserving original prediction tables. Latent-effect intervals use epistemic variance alone.\n",
         "## Figure availability\n",
     ]
     for figure, item in figure_status.items():
@@ -322,12 +357,51 @@ def build_report(run_dir: Path | str) -> dict[str, object]:
     ]
     (root / "summary.md").write_text("\n".join(text))
     _write_research_report(root, endpoints, summary, comparisons, biological)
+    _update_report_manifest(root, manifest)
     return {
         "results": str(root / "results.csv"),
         "summary": str(root / "summary.md"),
         "figure_status": figure_status,
         "warnings": warnings,
     }
+
+
+def _update_report_manifest(root: Path, manifest: dict) -> None:
+    """Refresh derived-file hashes while preserving original experimental provenance."""
+    names = (
+        "results.csv",
+        "calibration.csv",
+        "reliability.csv",
+        "grouped_calibration.csv",
+        "paired_differences.csv",
+        "summary.md",
+        "research_report.md",
+        "bibliography.md",
+        "figure_status.json",
+    )
+    files = manifest.setdefault("files", {})
+    for name in names:
+        path = root / name
+        if path.is_file():
+            files[name] = file_sha256(path)
+    for path in sorted((root / "figures").glob("*.png")):
+        files[str(path.relative_to(root))] = file_sha256(path)
+    provenance = environment_provenance()
+    template = Path(__file__).resolve().parents[3] / "reports" / "protocol_template.md"
+    bibliography = template.with_name("bibliography.md")
+    manifest["report_generation_provenance"] = {
+        "generated_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "source_tree_hash": provenance.get("source_tree_hash"),
+        "source_files": provenance.get("source_files", {}),
+        "git_commit": provenance.get("git_commit"),
+        "git_dirty": provenance.get("git_dirty"),
+        "git_tracked_dirty": provenance.get("git_tracked_dirty"),
+        "report_template_sha256": file_sha256(template) if template.is_file() else None,
+        "bibliography_template_sha256": file_sha256(bibliography)
+        if bibliography.is_file()
+        else None,
+    }
+    write_json(root / "experiment_manifest.json", manifest)
 
 
 def _write_research_report(
@@ -371,7 +445,7 @@ def _write_research_report(
     )
     if not biological:
         abstract += " Biological K562–RPE1 performance remains unmeasured in this run."
-    protocol_path = Path(__file__).resolve().parents[3] / "reports" / "research_report.md"
+    protocol_path = Path(__file__).resolve().parents[3] / "reports" / "protocol_template.md"
     bibliography_path = protocol_path.with_name("bibliography.md")
     if protocol_path.exists():
         document = protocol_path.read_text()

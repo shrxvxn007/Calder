@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from calder.data.validation import validate_adata
+
+LOGGER = logging.getLogger(__name__)
 
 
 def inspect_dataset(
@@ -19,6 +22,14 @@ def inspect_dataset(
     try:
         validate_adata(data, perturbation_key, control_label)
         labels = data.obs[perturbation_key].astype(str)
+        LOGGER.info(
+            "Inspected %s: %d cells, %d genes, %d perturbations, %d controls",
+            path,
+            data.n_obs,
+            data.n_vars,
+            int(labels[labels != control_label].nunique()),
+            int((labels == control_label).sum()),
+        )
         return {
             "path": str(path.resolve()),
             "cells": data.n_obs,

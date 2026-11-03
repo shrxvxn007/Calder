@@ -29,6 +29,7 @@ class SyntheticConfig(StrictModel):
 
 class DatasetConfig(StrictModel):
     name: str = "synthetic"
+    source_url: str | None = None
     prepared_path: str | None = None
     local_path: str | None = None
     normalization: Literal["log_normalized", "counts"] = "log_normalized"

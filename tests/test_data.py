@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import io
 import json
 
 import numpy as np
@@ -114,6 +116,31 @@ def test_dense_count_input_is_normalized_once(tmp_path):
         backed.file.close()
 
 
+def test_dense_compressed_preparation_matches_sparse_without_scratch_leaks(tmp_path):
+    ad = pytest.importorskip("anndata")
+    from calder.data.adapters import prepare_dataset
+
+    sparse_path = make_h5ad(tmp_path)
+    data = ad.read_h5ad(sparse_path)
+    data.X = data.X.toarray()  # Deliberately tiny fixture tests dense-backed inputs.
+    dense_path = tmp_path / "dense_compressed.h5ad"
+    data.write_h5ad(dense_path, compression="gzip")
+    kwargs = {"hvg_n": 4, "n_components": 2, "n_groups": 2, "seed": 9, "bootstrap_replicates": 6}
+    with pytest.warns(UserWarning, match="fewer than 30"):
+        sparse_pool, sparse_outcomes = prepare_dataset(sparse_path, tmp_path / "sparse", **kwargs)
+    with pytest.warns(UserWarning, match="fewer than 30"):
+        dense_pool, dense_outcomes = prepare_dataset(dense_path, tmp_path / "dense", **kwargs)
+    np.testing.assert_allclose(dense_pool.features, sparse_pool.features, atol=1e-8)
+    np.testing.assert_allclose(
+        dense_outcomes.measured_effects, sparse_outcomes.measured_effects, atol=1e-6
+    )
+    np.testing.assert_allclose(
+        dense_outcomes.noise_variances, sparse_outcomes.noise_variances, atol=1e-6
+    )
+    assert dense_pool.metadata["temporary_cache_bytes"] == data.n_obs * 4 * 4
+    assert not list((tmp_path / "dense").glob("calder-expression-*"))
+
+
 def test_prepared_artifact_tampering_is_rejected(tmp_path):
     from calder.data.adapters import load_prepared, save_prepared
     from calder.types import CandidatePool, OutcomeTable
@@ -147,9 +174,61 @@ def test_remote_unknown_dataset_is_actionable():
         verify_remote("invented")
 
 
+def test_versioned_scperturb_metadata_is_explicit_and_pinned(monkeypatch):
+    from calder.data.download import SCPERTURB, dataset_url
+
+    class Response(io.BytesIO):
+        status = 200
+        headers = {
+            "Content-Length": str(SCPERTURB["replogle22k562"]["size_bytes"]),
+            "Content-Type": "application/octet-stream",
+        }
+
+    monkeypatch.setattr("calder.data.download.urlopen", lambda *_args, **_kwargs: Response())
+    metadata = verify_remote("replogle22k562", source="scperturb")
+    assert metadata["size_bytes"] == 1546729675
+    assert metadata["md5_hex"] == "d8cba17576d1a8afc0f7d71b79cad0f7"
+    assert "13350497" in metadata["source_record"]
+    assert "essential.h5ad" in metadata["url"]
+    assert "storage.googleapis.com" in dataset_url("replogle22k562")
+    with pytest.raises(ValueError, match="source must"):
+        dataset_url("replogle22k562", source="invented")
+
+
+@pytest.mark.parametrize("valid_checksum", [True, False])
+def test_download_verifies_published_md5_and_atomic_output(tmp_path, monkeypatch, valid_checksum):
+    payload = b"\x89HDF\r\n\x1a\n" + b"test-data"
+    checksum = (
+        hashlib.md5(payload, usedforsecurity=False).hexdigest() if valid_checksum else "0" * 32
+    )
+    metadata = {
+        "size_bytes": len(payload),
+        "url": "https://example.test/exact.h5ad",
+        "filename": "exact.h5ad",
+        "md5_hex": checksum,
+    }
+    monkeypatch.setattr(
+        "calder.data.download.verify_remote", lambda *_args, **_kwargs: metadata.copy()
+    )
+    monkeypatch.setattr(
+        "calder.data.download.urlopen", lambda *_args, **_kwargs: io.BytesIO(payload)
+    )
+    if not valid_checksum:
+        with pytest.raises(RuntimeError, match="MD5"):
+            download_dataset("replogle22k562", tmp_path, source="scperturb")
+        assert not list(tmp_path.glob("*.part"))
+        assert not (tmp_path / "exact.h5ad").exists()
+    else:
+        path = download_dataset("replogle22k562", tmp_path, source="scperturb")
+        assert path.name == "exact.h5ad"
+        assert path.read_bytes() == payload
+        audit = json.loads(path.with_suffix(".download.json").read_text())
+        assert audit["source_md5_verified"] is True
+
+
 def test_download_enforces_verified_size_before_body(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        "calder.data.download.verify_remote", lambda *_: {"size_bytes": 100, "url": "unused"}
+        "calder.data.download.verify_remote", lambda *_, **__: {"size_bytes": 100, "url": "unused"}
     )
     with pytest.raises(RuntimeError, match="exceeding"):
         download_dataset("replogle22k562", tmp_path, max_bytes=10)
@@ -162,10 +241,12 @@ def test_cli_local_schema_and_rpe1_config_routing(tmp_path):
     from calder.cli import app
 
     path = make_h5ad(tmp_path)
+    output = tmp_path / "prepared"
     config = tmp_path / "rpe1.yaml"
     config.write_text(
         "dataset:\n"
         "  name: replogle22rpe1\n"
+        f"  prepared_path: {output}\n"
         "  n_hvg: 4\n"
         "  n_groups: 2\n"
         "  n_components: 2\n"
@@ -175,8 +256,7 @@ def test_cli_local_schema_and_rpe1_config_routing(tmp_path):
     runner = CliRunner()
     inspection = runner.invoke(app, ["data", "inspect", "--path", str(path)])
     assert inspection.exit_code == 0, inspection.output
-    assert json.loads(inspection.output)["control_cells"] == 35
-    output = tmp_path / "prepared"
+    assert json.loads(inspection.stdout)["control_cells"] == 35
     result = runner.invoke(
         app,
         [
@@ -186,8 +266,6 @@ def test_cli_local_schema_and_rpe1_config_routing(tmp_path):
             str(path),
             "--config",
             str(config),
-            "--output-dir",
-            str(output),
         ],
     )
     assert result.exit_code == 0, result.output

@@ -236,6 +236,7 @@ def run_trajectory(
                     "calibration_fitted": calibrator.is_fitted,
                     "observed_effect": float(y),
                     "noise_variance": float(v),
+                    "model_noise_variance": config.model.noise_floor,
                     "is_hit": bool(y > threshold),
                     "cost": float(pool.costs[index]),
                     "remaining_budget": max(

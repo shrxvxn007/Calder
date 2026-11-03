@@ -1,0 +1,54 @@
+# Exploratory fixed one-factor grid executed by scripts/run_sensitivity.py.
+# Nine variants: pilot .1/.2/.3, batch 5/10/20, noise .05/.2/.5.
+# Main synthetic/biological method hyperparameters are not selected from this grid.
+schema_version: 1
+experiment_name: development_sensitivity
+output_dir: results
+dataset:
+  name: synthetic
+synthetic:
+  n_candidates: 250
+  n_features: 24
+  n_groups: 5
+  scenarios:
+  - A
+  - B
+  - C
+  - D
+  data_seed: 317
+  noise_scale: 0.2
+  distribution_shift: 0.8
+  group_corruption: 0.25
+  group_overlap: 0.1
+  outlier_fraction: 0.02
+  heterogeneous_costs: false
+model:
+  name: random_features
+  n_features: 128
+  prior_precision: 1.0
+  noise_floor: 0.04
+  length_scale: 2.0
+acquisition:
+  diversity_weight: 1.0
+  uncertainty_weight: 0.1
+  similarity_weight: 0.1
+  ucb_beta: 2.0
+protocol:
+  seeds:
+  - 0
+  - 1
+  - 2
+  pilot_fraction: 0.2
+  calibration_fraction: 0.35
+  calibration_min_samples: 12
+  batch_size: 10
+  budget_fractions:
+  - 0.05
+  - 0.1
+  - 0.2
+  threshold_quantiles:
+  - 0.8
+  policies:
+  - probability_of_hit
+  - calder
+  include_oracle: false
